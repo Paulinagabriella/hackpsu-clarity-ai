@@ -22,7 +22,7 @@ Clarity AI is a real-time social media safety agent that analyzes posts for:
 
 ### Backend
 cd backend  
-.venv\Scripts\activate
+.venv\Scripts\activate 
 uvicorn main:app --reload  
 
 ### Frontend
