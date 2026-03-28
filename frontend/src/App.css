@@ -1,68 +1,90 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f4f7fb;
-  color: #1f2937;
+  font-family: "Inter", sans-serif;
+  background: #f5f7fb;
 }
 
 .app {
-  min-height: 100vh;
   padding: 2rem;
 }
 
 .container {
   max-width: 900px;
-  margin: 0 auto;
+  margin: auto;
 }
 
 h1 {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
 }
 
 .subtitle {
+  color: #081c45;
   margin-bottom: 1.5rem;
-  color: #4b5563;
 }
 
 .post-input {
   width: 100%;
   padding: 1rem;
   border-radius: 12px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
+  margin-bottom: 1rem;
   font-size: 1rem;
-  resize: vertical;
-  box-sizing: border-box;
 }
 
-.analyze-button {
-  margin-top: 1rem;
-  padding: 0.8rem 1.4rem;
-  border: none;
+button {
+  padding: 0.8rem 1.2rem;
   border-radius: 10px;
+  border: none;
   background: #2563eb;
   color: white;
-  font-size: 1rem;
   cursor: pointer;
-}
-
-.analyze-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
 }
 
 .results {
   margin-top: 2rem;
+}
+
+.grid {
   display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
 }
 
 .card {
-  background: white;
-  border-radius: 16px;
-  padding: 1.2rem;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+  border-radius: 14px;
+  color: white;
 }
 
-.rewrite-card {
-  border-left: 6px solid #2563eb;
+.red {
+  background: #ef4444;
+}
+
+.orange {
+  background: #f97316;
+}
+
+.blue {
+  background: #3b82f6;
+}
+
+.purple {
+  background: #8b5cf6;
+}
+
+.rewrite {
+  margin-top: 1.5rem;
+  background: white;
+  padding: 1.2rem;
+  border-radius: 14px;
+  border-left: 6px solid #10b981;
+}
+
+.rewrite h2 {
+  margin-top: 0;
+}
+
+.rewrite button {
+  margin-top: 1rem;
+  background: #10b981;
 }
