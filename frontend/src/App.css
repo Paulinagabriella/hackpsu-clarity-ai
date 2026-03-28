@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: "Inter", sans-serif;
-  background: #f5f7fb;
+  background: #ffffff;
 }
 
 .app {
@@ -15,10 +15,11 @@ body {
 
 h1 {
   margin-bottom: 0.3rem;
+  color: #030303;
 }
 
 .subtitle {
-  color: #081c45;
+  color: #030303;
   margin-bottom: 1.5rem;
 }
 
@@ -26,7 +27,7 @@ h1 {
   width: 100%;
   padding: 1rem;
   border-radius: 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #036ee0;
   margin-bottom: 1rem;
   font-size: 1rem;
 }
@@ -53,7 +54,7 @@ button {
 .card {
   padding: 1rem;
   border-radius: 14px;
-  color: white;
+  color: rgb(255, 255, 255);
 }
 
 .red {
@@ -74,14 +75,16 @@ button {
 
 .rewrite {
   margin-top: 1.5rem;
-  background: white;
+  background: rgb(248, 245, 245);
   padding: 1.2rem;
   border-radius: 14px;
   border-left: 6px solid #10b981;
+  color: #030303;
 }
 
 .rewrite h2 {
   margin-top: 0;
+  color: #030303;
 }
 
 .rewrite button {
