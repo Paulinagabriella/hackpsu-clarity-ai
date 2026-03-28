@@ -1,7 +1,12 @@
 body {
   margin: 0;
-  font-family: "Inter", sans-serif;
-  background: #ffffff;
+  font-family: "Inter", Arial, sans-serif;
+  background: #f5f7fb;
+  color: #1f2937;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 .app {
@@ -9,27 +14,52 @@ body {
 }
 
 .container {
-  max-width: 900px;
+  max-width: 950px;
   margin: auto;
 }
 
 h1 {
-  margin-bottom: 0.3rem;
-  color: #030303;
+  margin-bottom: 0.35rem;
+  color: #1f2937;
 }
 
 .subtitle {
-  color: #030303;
+  color: #6b7280;
   margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.input-group {
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-weight: 600;
+}
+
+.user-input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  font-size: 1rem;
+  background: white;
+  color: #1f2937;
 }
 
 .post-input {
   width: 100%;
   padding: 1rem;
   border-radius: 12px;
-  border: 1px solid #036ee0;
+  border: 1px solid #d1d5db;
   margin-bottom: 1rem;
   font-size: 1rem;
+  background: white;
+  resize: vertical;
+  color: #1f2937;
 }
 
 button {
@@ -39,10 +69,45 @@ button {
   background: #2563eb;
   color: white;
   cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .results {
   margin-top: 2rem;
+}
+
+.warning-banner {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  margin-bottom: 1rem;
+}
+
+.warning-banner h3 {
+  margin-top: 0;
+  margin-bottom: 0.4rem;
+}
+
+.warning-banner p {
+  margin: 0 0 0.35rem 0;
+}
+
+.warning-meta {
+  font-size: 0.9rem;
+}
+
+.stats-bar {
+  margin-bottom: 1rem;
+  color: #4b5563;
+  font-size: 0.95rem;
 }
 
 .grid {
@@ -53,8 +118,24 @@ button {
 
 .card {
   padding: 1rem;
-  border-radius: 14px;
-  color: rgb(255, 255, 255);
+  border-radius: 16px;
+  color: white;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.card h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.score {
+  font-weight: 700;
+  margin-bottom: 0.45rem;
+}
+
+.tag {
+  font-weight: 700;
+  margin-bottom: 0.45rem;
 }
 
 .red {
@@ -75,19 +156,33 @@ button {
 
 .rewrite {
   margin-top: 1.5rem;
-  background: rgb(248, 245, 245);
+  background: white;
   padding: 1.2rem;
-  border-radius: 14px;
+  border-radius: 16px;
   border-left: 6px solid #10b981;
-  color: #030303;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 
 .rewrite h2 {
   margin-top: 0;
-  color: #030303;
+  color: #1f2937;
+}
+
+.rewrite p {
+  line-height: 1.6;
 }
 
 .rewrite button {
   margin-top: 1rem;
   background: #10b981;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app {
+    padding: 1rem;
+  }
 }

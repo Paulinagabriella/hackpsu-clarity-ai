@@ -1,5 +1,6 @@
 import re
 
+
 def detect_privacy_issues(text: str):
     issues = []
 
@@ -28,3 +29,31 @@ def detect_privacy_issues(text: str):
         issues.append("Possible personal location or safety oversharing detected")
 
     return issues
+
+
+def build_privacy_result(text: str):
+    issues = detect_privacy_issues(text)
+
+    if not issues:
+        return {
+            "tag": "No Privacy Risk Detected",
+            "score": 0,
+            "details": ["No major privacy issues detected"]
+        }
+
+    score = 4
+
+    if len(issues) >= 2:
+        score = 7
+
+    if any("phone number" in issue.lower() for issue in issues):
+        score = max(score, 8)
+
+    if any("address" in issue.lower() for issue in issues):
+        score = max(score, 8)
+
+    return {
+        "tag": "Privacy Risk",
+        "score": score,
+        "details": issues
+    }
