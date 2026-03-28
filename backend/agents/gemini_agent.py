@@ -7,7 +7,7 @@ load_dotenv()
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 def analyze_with_gemini(post: str):
     prompt = f"""
@@ -40,6 +40,8 @@ Important rules:
 - Do not wrap the JSON in markdown
 - Keep explanations concise
 - Do not claim certainty for misinformation; describe it as risk or possible need for verification
+- The rewrite must remove insults, threats, and sensitive personal information such as exact addresses, phone numbers, or other private details
+- The rewrite should be safe for posting publicly
 
 Post:
 \"\"\"{post}\"\"\"
