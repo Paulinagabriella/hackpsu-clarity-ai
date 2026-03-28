@@ -34,8 +34,22 @@ function App() {
       await navigator.clipboard.writeText(result.rewrite);
       alert("Rewrite copied to clipboard.");
     } catch (error) {
-      console.error(error);
       alert("Could not copy rewrite.");
+    }
+  };
+
+  const moderationLevelClass = (level) => {
+    switch (level) {
+      case "gentle_warning":
+        return "mod-banner yellow";
+      case "strong_warning":
+        return "mod-banner orange";
+      case "flagged":
+        return "mod-banner red";
+      case "review":
+        return "mod-banner darkred";
+      default:
+        return "mod-banner green";
     }
   };
 
@@ -44,7 +58,7 @@ function App() {
       <div className="container">
         <h1>Clarity AI 🚀</h1>
         <p className="subtitle">
-          Analyze your post for truth, tone, privacy, wellbeing, and repeated behavior patterns before sharing.
+          Analyze posts for truth, tone, privacy, emotional impact, and repeated harmful behavior over time.
         </p>
 
         <div className="input-group">
@@ -72,18 +86,32 @@ function App() {
 
         {result && (
           <div className="results">
-            {result.behavior_warning && (
-              <div className="warning-banner">
-                <h3>🚨 Behavior Alert</h3>
-                <p>{result.behavior_warning}</p>
-                <span className="warning-meta">
-                  Based on recent activity for user: <strong>{result.user_id}</strong>
-                </span>
+            {result.used_fallback && (
+              <div className="fallback-banner">
+                <h3>⚠️ AI Quota Reached</h3>
+                <p>
+                  Gemini quota was temporarily exceeded, so this result is using
+                  a local fallback analysis.
+                </p>
               </div>
             )}
 
-            <div className="stats-bar">
-              <span>Tracked posts for this user: {result.recent_post_count}</span>
+            <div className={moderationLevelClass(result.moderation_status.level)}>
+              <h3>
+                🛡 Moderation Status:{" "}
+                {result.moderation_status.level.replace("_", " ")}
+              </h3>
+              <p>{result.moderation_status.message}</p>
+              <div className="mod-meta">
+                <span>
+                  Total points (recent window):{" "}
+                  <strong>{result.moderation_status.total_points}</strong>
+                </span>
+                <span>
+                  Tracked posts for this user:{" "}
+                  <strong>{result.recent_post_count}</strong>
+                </span>
+              </div>
             </div>
 
             <div className="grid">
@@ -99,7 +127,9 @@ function App() {
 
               <div className="card orange">
                 <h3>⚠️ Truth Check</h3>
-                <div className="score">Score: {result.misinformation.score}/10</div>
+                <div className="score">
+                  Score: {result.misinformation.score}/10
+                </div>
                 <div className="tag">{result.misinformation.tag}</div>
                 <p>{result.misinformation.details}</p>
               </div>
@@ -117,6 +147,38 @@ function App() {
                 <div className="tag">{result.wellbeing.tag}</div>
                 <p>{result.wellbeing.details}</p>
               </div>
+            </div>
+
+            <div className="category-section">
+              <h2>📊 Moderation Categories</h2>
+              {result.moderation_categories.length === 0 ? (
+                <p>No moderation categories triggered for this post.</p>
+              ) : (
+                <div className="category-list">
+                  {result.moderation_categories.map((cat, index) => (
+                    <div className="category-card" key={index}>
+                      <div className="category-header">
+                        <span className="category-type">{cat.type}</span>
+                        <span className="category-severity">
+                          Severity: {cat.severity}/10
+                        </span>
+                      </div>
+                      <div className="category-points">
+                        Weight: {cat.weight} • Points: {cat.points}
+                      </div>
+                      <p>{cat.details}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="points-summary">
+              <h2>🧮 Post Moderation Points</h2>
+              <p>
+                This post added <strong>{result.post_points}</strong> weighted
+                moderation points.
+              </p>
             </div>
 
             <div className="rewrite">

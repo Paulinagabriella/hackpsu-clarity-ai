@@ -16,9 +16,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory history for hackathon demo purposes
-# You can later replace this with MongoDB
+# Demo-only in-memory storage
 user_history = {}
+
+CATEGORY_WEIGHTS = {
+    "sarcasm_joking": 0.5,
+    "rude_tone": 1.0,
+    "aggression": 1.2,
+    "harassment": 1.5,
+    "hate_speech": 2.5,
+    "threat": 3.0,
+    "misinformation": 1.5,
+    "privacy_risk": 1.5,
+}
+
+IMMEDIATE_ESCALATION_TYPES = {"hate_speech", "threat"}
+IMMEDIATE_ESCALATION_SEVERITY = 9
 
 
 class PostInput(BaseModel):
@@ -31,61 +44,106 @@ def root():
     return {"message": "Clarity AI backend is running"}
 
 
-def get_behavior_warning(history):
-    if not history:
-        return None
-
-    recent_posts = history[-5:]
-
-    aggressive_count = sum(
-        1 for item in recent_posts
-        if item["tone"].get("score", 0) >= 7
-    )
-
-    negative_wellbeing_count = sum(
-        1 for item in recent_posts
-        if item["wellbeing"].get("score", 0) >= 7
-    )
-
-    privacy_count = sum(
-        1 for item in recent_posts
-        if item["privacy"].get("score", 0) >= 7
-    )
-
-    misinformation_count = sum(
-        1 for item in recent_posts
-        if item["misinformation"].get("score", 0) >= 7
-    )
-
-    avg_tone_score = sum(item["tone"].get("score", 0) for item in recent_posts) / len(recent_posts)
-    avg_wellbeing_score = sum(item["wellbeing"].get("score", 0) for item in recent_posts) / len(recent_posts)
-
-    if aggressive_count >= 3:
-        return "Repeated aggressive posting detected in recent activity. Consider revising your tone before posting."
-
-    if negative_wellbeing_count >= 3:
-        return "Recent posts show repeated highly negative emotional content. Consider taking a break before posting."
-
-    if privacy_count >= 2:
-        return "Repeated privacy-risk posts detected. Be careful not to overshare sensitive information publicly."
-
-    if misinformation_count >= 2:
-        return "Repeated high-risk factual claims detected. Consider verifying claims before posting."
-
-    if avg_tone_score >= 6.5:
-        return "Your recent activity shows a pattern of escalating hostility. A calmer tone may help prevent conflict."
-
-    if avg_wellbeing_score >= 6.5:
-        return "Your recent posts suggest elevated frustration or distress. Consider pausing briefly before posting."
-
-    return None
-
-
 @app.get("/history/{user_id}")
 def get_user_history(user_id: str):
     return {
         "user_id": user_id,
         "history": user_history.get(user_id, [])
+    }
+
+
+def attach_weighted_points(categories):
+    enriched = []
+    total_points = 0.0
+
+    for category in categories:
+        category_type = category["type"]
+        severity = int(category["severity"])
+        weight = CATEGORY_WEIGHTS.get(category_type, 1.0)
+        points = round(severity * weight, 1)
+
+        item = {
+            **category,
+            "weight": weight,
+            "points": points
+        }
+        enriched.append(item)
+        total_points += points
+
+    return enriched, round(total_points, 1)
+
+
+def build_privacy_category(privacy_result):
+    if privacy_result["score"] <= 0:
+        return None
+
+    return {
+        "type": "privacy_risk",
+        "severity": min(10, int(privacy_result["score"])),
+        "details": "; ".join(privacy_result["details"])
+    }
+
+
+def get_recent_window(history, limit=10):
+    return history[-limit:]
+
+
+def calculate_user_moderation(recent_posts):
+    total_points = round(sum(post.get("post_points", 0) for post in recent_posts), 1)
+
+    category_breakdown = {}
+    max_severity_seen = 0
+    immediate_review = False
+    immediate_reasons = []
+
+    for post in recent_posts:
+        for category in post.get("moderation_categories", []):
+            ctype = category["type"]
+            severity = int(category["severity"])
+            points = float(category["points"])
+
+            category_breakdown[ctype] = round(category_breakdown.get(ctype, 0) + points, 1)
+            max_severity_seen = max(max_severity_seen, severity)
+
+            if ctype in IMMEDIATE_ESCALATION_TYPES and severity >= IMMEDIATE_ESCALATION_SEVERITY:
+                immediate_review = True
+                immediate_reasons.append(
+                    f"Immediate review triggered by {ctype} with severity {severity}"
+                )
+
+    if immediate_review:
+        return {
+            "level": "review",
+            "message": "Critical content detected. This account should be sent for human moderation review immediately.",
+            "total_points": total_points,
+            "category_breakdown": category_breakdown,
+            "immediate_review": True,
+            "immediate_reasons": immediate_reasons
+        }
+
+    if total_points >= 50:
+        level = "review"
+        message = "This account has accumulated severe harmful-content points and should be sent for human moderation review."
+    elif total_points >= 35:
+        level = "flagged"
+        message = "This account has been flagged for repeated harmful behavior and should be reviewed soon."
+    elif total_points >= 20:
+        level = "strong_warning"
+        message = "Repeated harmful behavior detected. Continued activity may lead to moderation review."
+    elif total_points >= 10:
+        level = "gentle_warning"
+        message = "Your recent posts show a pattern of harmful or risky behavior. Please revise your tone and content."
+    else:
+        level = "none"
+        message = "No cumulative moderation warning at this time."
+
+    return {
+        "level": level,
+        "message": message,
+        "total_points": total_points,
+        "category_breakdown": category_breakdown,
+        "immediate_review": False,
+        "immediate_reasons": []
     }
 
 
@@ -100,12 +158,23 @@ def analyze_post(data: PostInput):
     privacy_result = build_privacy_result(post)
     ai_result = analyze_with_gemini(post)
 
+    moderation_categories = list(ai_result.get("moderation_categories", []))
+
+    privacy_category = build_privacy_category(privacy_result)
+    if privacy_category:
+        moderation_categories.append(privacy_category)
+
+    moderation_categories, post_points = attach_weighted_points(moderation_categories)
+
     result = {
         "privacy": privacy_result,
         "tone": ai_result["tone"],
         "misinformation": ai_result["misinformation"],
         "wellbeing": ai_result["wellbeing"],
-        "rewrite": ai_result["rewrite"]
+        "rewrite": ai_result["rewrite"],
+        "moderation_categories": moderation_categories,
+        "post_points": post_points,
+        "used_fallback": ai_result.get("used_fallback", False)
     }
 
     entry = {
@@ -115,16 +184,19 @@ def analyze_post(data: PostInput):
         "tone": ai_result["tone"],
         "misinformation": ai_result["misinformation"],
         "wellbeing": ai_result["wellbeing"],
-        "rewrite": ai_result["rewrite"]
+        "rewrite": ai_result["rewrite"],
+        "moderation_categories": moderation_categories,
+        "post_points": post_points
     }
 
     user_history[user_id].append(entry)
 
-    behavior_warning = get_behavior_warning(user_history[user_id])
+    recent_posts = get_recent_window(user_history[user_id], limit=10)
+    moderation_status = calculate_user_moderation(recent_posts)
 
     return {
         **result,
-        "behavior_warning": behavior_warning,
+        "user_id": user_id,
         "recent_post_count": len(user_history[user_id]),
-        "user_id": user_id
+        "moderation_status": moderation_status
     }

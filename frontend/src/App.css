@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-  max-width: 950px;
+  max-width: 1000px;
   margin: auto;
 }
 
@@ -31,7 +31,6 @@ h1 {
 
 .input-group {
   margin-bottom: 1rem;
-  color: #1f2937;
 }
 
 .label {
@@ -82,7 +81,7 @@ button:disabled {
   margin-top: 2rem;
 }
 
-.warning-banner {
+.fallback-banner {
   background: #fff7ed;
   border: 1px solid #fdba74;
   color: #9a3412;
@@ -91,23 +90,65 @@ button:disabled {
   margin-bottom: 1rem;
 }
 
-.warning-banner h3 {
-  margin-top: 0;
-  margin-bottom: 0.4rem;
+.fallback-banner h3 {
+  margin: 0 0 0.4rem 0;
 }
 
-.warning-banner p {
-  margin: 0 0 0.35rem 0;
+.fallback-banner p {
+  margin: 0;
 }
 
-.warning-meta {
-  font-size: 0.9rem;
-}
-
-.stats-bar {
+.mod-banner {
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
   margin-bottom: 1rem;
-  color: #4b5563;
+  border: 1px solid transparent;
+}
+
+.mod-banner h3 {
+  margin: 0 0 0.4rem 0;
+  text-transform: capitalize;
+}
+
+.mod-banner p {
+  margin: 0 0 0.5rem 0;
+}
+
+.mod-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
   font-size: 0.95rem;
+}
+
+.mod-banner.green {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+
+.mod-banner.yellow {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.mod-banner.orange {
+  background: #fff7ed;
+  color: #9a3412;
+  border-color: #fdba74;
+}
+
+.mod-banner.red {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+.mod-banner.darkred {
+  background: #7f1d1d;
+  color: white;
+  border-color: #7f1d1d;
 }
 
 .grid {
@@ -154,18 +195,61 @@ button:disabled {
   background: #8b5cf6;
 }
 
+.category-section,
+.points-summary,
 .rewrite {
   margin-top: 1.5rem;
   background: white;
   padding: 1.2rem;
   border-radius: 16px;
-  border-left: 6px solid #10b981;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 
+.category-section h2,
+.points-summary h2,
 .rewrite h2 {
   margin-top: 0;
   color: #1f2937;
+}
+
+.category-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.category-card {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+
+.category-type {
+  font-weight: 700;
+  text-transform: lowercase;
+}
+
+.category-severity {
+  font-weight: 600;
+  color: #374151;
+}
+
+.category-points {
+  font-size: 0.95rem;
+  color: #4b5563;
+  margin-bottom: 0.4rem;
+}
+
+.rewrite {
+  border-left: 6px solid #10b981;
 }
 
 .rewrite p {
