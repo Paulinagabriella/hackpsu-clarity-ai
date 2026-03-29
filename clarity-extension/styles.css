@@ -1,0 +1,371 @@
+#clarity-ai-panel {
+  position: fixed;
+  top: 90px;
+  right: 20px;
+  width: 360px;
+  max-height: 82vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #dbe3ef;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+  z-index: 999999;
+  font-family: Inter, Arial, sans-serif;
+  color: #111827;
+}
+
+.clarity-header {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  padding: 14px 16px;
+  font-weight: 800;
+  font-size: 16px;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  letter-spacing: 0.2px;
+}
+
+.clarity-body {
+  padding: 14px;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+}
+
+.clarity-top-card,
+.clarity-section-block {
+  background: white;
+  border: 1px solid #ebf0f7;
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+.clarity-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.clarity-small-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.clarity-user {
+  font-size: 15px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.clarity-risk-badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.clarity-risk-badge.minimal {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.clarity-risk-badge.low {
+  background: #ecfccb;
+  color: #3f6212;
+}
+
+.clarity-risk-badge.moderate {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.clarity-risk-badge.high {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.clarity-risk-badge.critical {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.clarity-status-line {
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  text-transform: capitalize;
+}
+
+.clarity-message {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #374151;
+  margin-bottom: 10px;
+}
+
+.clarity-meta-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #4b5563;
+  margin-bottom: 12px;
+}
+
+.clarity-risk-meter {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.clarity-risk-meter-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.clarity-risk-bar {
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.clarity-risk-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.clarity-risk-fill.minimal {
+  background: linear-gradient(90deg, #34d399, #10b981);
+}
+
+.clarity-risk-fill.low {
+  background: linear-gradient(90deg, #a3e635, #65a30d);
+}
+
+.clarity-risk-fill.moderate {
+  background: linear-gradient(90deg, #facc15, #eab308);
+}
+
+.clarity-risk-fill.high {
+  background: linear-gradient(90deg, #fb923c, #f97316);
+}
+
+.clarity-risk-fill.critical {
+  background: linear-gradient(90deg, #ef4444, #b91c1c);
+}
+
+.clarity-risk-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #6b7280;
+  margin-top: 5px;
+}
+
+.clarity-score-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.clarity-score-card {
+  background: white;
+  border: 1px solid #ebf0f7;
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+.clarity-score-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.clarity-score-value {
+  font-size: 18px;
+  font-weight: 900;
+  color: #111827;
+  margin-bottom: 3px;
+}
+
+.clarity-score-tag {
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.3;
+}
+
+.clarity-section-title {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: #111827;
+}
+
+.clarity-summary-item {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #374151;
+  margin-bottom: 7px;
+}
+
+.clarity-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.clarity-chip {
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.clarity-chip.low {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.clarity-chip.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.clarity-chip.high {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.clarity-chip.critical {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.clarity-category-list {
+  display: grid;
+  gap: 8px;
+}
+
+.clarity-category-card {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 9px;
+}
+
+.clarity-category-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+
+.clarity-category-type {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+  color: #111827;
+}
+
+.clarity-category-severity {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4b5563;
+}
+
+.clarity-category-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.clarity-category-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #60a5fa, #2563eb);
+  border-radius: 999px;
+}
+
+.clarity-category-points {
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.clarity-category-details {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #374151;
+}
+
+.clarity-post-points {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.clarity-rewrite-box {
+  border-left: 5px solid #10b981;
+}
+
+.clarity-rewrite {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #1f2937;
+  background: #ecfdf5;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.clarity-status {
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.clarity-empty {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.clarity-error {
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.clarity-fallback {
+  color: #9a3412;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  padding: 10px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  line-height: 1.4;
+}

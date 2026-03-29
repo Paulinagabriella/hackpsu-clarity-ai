@@ -92,6 +92,7 @@ def calculate_user_moderation(recent_posts):
     total_points = round(sum(post.get("post_points", 0) for post in recent_posts), 1)
 
     category_breakdown = {}
+    max_severity_seen = 0
     immediate_review = False
     immediate_reasons = []
 
@@ -102,6 +103,7 @@ def calculate_user_moderation(recent_posts):
             points = float(category["points"])
 
             category_breakdown[ctype] = round(category_breakdown.get(ctype, 0) + points, 1)
+            max_severity_seen = max(max_severity_seen, severity)
 
             if ctype in IMMEDIATE_ESCALATION_TYPES and severity >= IMMEDIATE_ESCALATION_SEVERITY:
                 immediate_review = True
@@ -130,7 +132,7 @@ def calculate_user_moderation(recent_posts):
         message = "Repeated harmful behavior detected. Continued activity may lead to moderation review."
     elif total_points >= 10:
         level = "gentle_warning"
-        message = "Your recent posted/commented content shows a pattern of harmful or risky behavior. Please revise your tone and content."
+        message = "Your recent posts show a pattern of harmful or risky behavior. Please revise your tone and content."
     else:
         level = "none"
         message = "No cumulative moderation warning at this time."
@@ -145,7 +147,14 @@ def calculate_user_moderation(recent_posts):
     }
 
 
-def build_analysis_result(post: str, user_id: str):
+@app.post("/analyze")
+def analyze_post(data: PostInput):
+    post = data.post.strip()
+    user_id = data.user_id.strip() or "demo_user"
+
+    if user_id not in user_history:
+        user_history[user_id] = []
+
     privacy_result = build_privacy_result(post)
     ai_result = analyze_with_gemini(post)
 
@@ -157,11 +166,7 @@ def build_analysis_result(post: str, user_id: str):
 
     moderation_categories, post_points = attach_weighted_points(moderation_categories)
 
-    current_history = user_history.get(user_id, [])
-    recent_posts = get_recent_window(current_history, limit=10)
-    moderation_status = calculate_user_moderation(recent_posts)
-
-    return {
+    result = {
         "privacy": privacy_result,
         "tone": ai_result["tone"],
         "misinformation": ai_result["misinformation"],
@@ -169,59 +174,29 @@ def build_analysis_result(post: str, user_id: str):
         "rewrite": ai_result["rewrite"],
         "moderation_categories": moderation_categories,
         "post_points": post_points,
-        "used_fallback": ai_result.get("used_fallback", False),
-        "user_id": user_id,
-        "recent_post_count": len(current_history),
-        "moderation_status": moderation_status,
-        "counted_toward_history": False
+        "used_fallback": ai_result.get("used_fallback", False)
     }
-
-
-@app.post("/preview")
-def preview_post(data: PostInput):
-    post = data.post.strip()
-    user_id = data.user_id.strip() or "demo_user"
-    return build_analysis_result(post, user_id)
-
-
-@app.post("/commit")
-def commit_post(data: PostInput):
-    post = data.post.strip()
-    user_id = data.user_id.strip() or "demo_user"
-
-    if user_id not in user_history:
-        user_history[user_id] = []
-
-    preview_result = build_analysis_result(post, user_id)
 
     entry = {
         "timestamp": datetime.utcnow().isoformat(),
         "post_text": post,
-        "privacy": preview_result["privacy"],
-        "tone": preview_result["tone"],
-        "misinformation": preview_result["misinformation"],
-        "wellbeing": preview_result["wellbeing"],
-        "rewrite": preview_result["rewrite"],
-        "moderation_categories": preview_result["moderation_categories"],
-        "post_points": preview_result["post_points"],
-        "committed": True
+        "privacy": privacy_result,
+        "tone": ai_result["tone"],
+        "misinformation": ai_result["misinformation"],
+        "wellbeing": ai_result["wellbeing"],
+        "rewrite": ai_result["rewrite"],
+        "moderation_categories": moderation_categories,
+        "post_points": post_points
     }
 
     user_history[user_id].append(entry)
 
     recent_posts = get_recent_window(user_history[user_id], limit=10)
-    updated_status = calculate_user_moderation(recent_posts)
+    moderation_status = calculate_user_moderation(recent_posts)
 
     return {
-        **preview_result,
+        **result,
+        "user_id": user_id,
         "recent_post_count": len(user_history[user_id]),
-        "moderation_status": updated_status,
-        "counted_toward_history": True,
-        "commit_message": "This post/comment was counted toward the user's moderation history."
+        "moderation_status": moderation_status
     }
-
-
-# Optional compatibility endpoint if other parts still call /analyze
-@app.post("/analyze")
-def analyze_alias(data: PostInput):
-    return preview_post(data)
