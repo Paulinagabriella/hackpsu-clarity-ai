@@ -2,6 +2,8 @@ import { useState } from "react";
 import axios from "axios";
 import "./App.css";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 function App() {
   const [post, setPost] = useState("");
   const [userId, setUserId] = useState("demo_user");
@@ -15,7 +17,7 @@ function App() {
     setResult(null);
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/analyze", {
+      const response = await axios.post(`${API_URL}/analyze`, {
         post,
         user_id: userId,
       });
