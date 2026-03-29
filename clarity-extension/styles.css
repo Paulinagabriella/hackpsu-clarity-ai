@@ -369,23 +369,3 @@
   font-size: 12px;
   line-height: 1.4;
 }
-.clarity-counted {
-  padding: 8px 10px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 700;
-  margin-bottom: 10px;
-  line-height: 1.4;
-}
-
-.counted-no {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
-}
-
-.counted-yes {
-  background: #ecfdf5;
-  color: #166534;
-  border: 1px solid #86efac;
-}
