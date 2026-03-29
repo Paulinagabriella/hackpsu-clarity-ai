@@ -3,20 +3,8 @@ const API_URL = "https://clarity-ai-backend-zv30.onrender.com";
 let panel = null;
 let debounceTimer = null;
 let detectedUserId = "unknown_user";
-
-async function getStoredUserId() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(["clarityUserId"], (result) => {
-      resolve(result.clarityUserId || null);
-    });
-  });
-}
-
-async function setStoredUserId(userId) {
-  return new Promise((resolve) => {
-    chrome.storage.local.set({ clarityUserId: userId }, () => resolve());
-  });
-}
+let lastAnalyzedText = "";
+let lastPreviewResult = null;
 
 function getInstagramUsernameFromPage() {
   const path = window.location.pathname;
@@ -40,45 +28,15 @@ function getInstagramUsernameFromPage() {
     }
   }
 
-  const links = document.querySelectorAll('a[href^="/"]');
-  for (const link of links) {
-    const href = link.getAttribute("href");
-    if (!href) continue;
-
-    const clean = href.replace(/\//g, "");
-    if (
-      clean &&
-      ![
-        "accounts",
-        "explore",
-        "direct",
-        "reels",
-        "stories",
-        "p",
-        "about",
-        "developer",
-        "legal"
-      ].includes(clean)
-    ) {
-      return clean;
-    }
-  }
-
-  return null;
+  detectedUserId = "demo_user";
+  return "demo_user";
 }
 
 async function getInstagramUsername() {
   const pageUser = getInstagramUsernameFromPage();
   if (pageUser) {
     detectedUserId = pageUser;
-    await setStoredUserId(pageUser);
     return pageUser;
-  }
-
-  const storedUser = await getStoredUserId();
-  if (storedUser) {
-    detectedUserId = storedUser;
-    return storedUser;
   }
 
   detectedUserId = "demo_user";
@@ -160,10 +118,10 @@ function getCategoryChipClass(severity) {
   return "low";
 }
 
-async function analyzeText(text) {
+async function previewText(text) {
   const userId = await getInstagramUsername();
 
-  const response = await fetch(`${API_URL}/analyze`, {
+  const response = await fetch(`${API_URL}/preview`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -175,13 +133,34 @@ async function analyzeText(text) {
   });
 
   if (!response.ok) {
-    throw new Error(`Backend error: ${response.status}`);
+    throw new Error(`Preview error: ${response.status}`);
   }
 
   return response.json();
 }
 
-function renderResult(result) {
+async function commitText(text) {
+  const userId = await getInstagramUsername();
+
+  const response = await fetch(`${API_URL}/commit`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      post: text,
+      user_id: userId
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Commit error: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+function renderResult(result, mode = "preview") {
   const moderation = result.moderation_status || {};
   const categories = result.moderation_categories || [];
   const totalPoints = moderation.total_points || 0;
@@ -222,6 +201,19 @@ function renderResult(result) {
     `
     : "";
 
+  const countingStatus =
+    mode === "commit" || result.counted_toward_history
+      ? `
+        <div class="clarity-counted counted-yes">
+          ✅ Counted toward user history
+        </div>
+      `
+      : `
+        <div class="clarity-counted counted-no">
+          👀 Preview only — points are not counted until the user actually posts/comments
+        </div>
+      `;
+
   updatePanel(`
     ${fallbackHtml}
 
@@ -233,6 +225,8 @@ function renderResult(result) {
         </div>
         <div class="clarity-risk-badge ${riskClass}">${riskLabel} Risk</div>
       </div>
+
+      ${countingStatus}
 
       <div class="clarity-small-label">Moderation Status</div>
       <div class="clarity-status-line">${(moderation.level || "none").replaceAll("_", " ")}</div>
@@ -299,7 +293,7 @@ function renderResult(result) {
       <div class="clarity-section-title">Moderation Categories</div>
       <div class="clarity-chip-row">${chipsHtml || '<span class="clarity-empty">No categories</span>'}</div>
       <div class="clarity-category-list">${categoriesHtml}</div>
-      <div class="clarity-post-points">This post added <strong>${result.post_points ?? 0}</strong> weighted points.</div>
+      <div class="clarity-post-points">This post would add <strong>${result.post_points ?? 0}</strong> weighted points.</div>
     </div>
 
     <div class="clarity-section-block clarity-rewrite-box">
@@ -315,45 +309,117 @@ async function showInitialUser() {
     <div class="clarity-top-card">
       <div class="clarity-small-label">Detected User</div>
       <div class="clarity-user">${userId}</div>
+      <div class="clarity-counted counted-no">
+        👀 Preview only — points are not counted until the user actually posts/comments
+      </div>
       <div class="clarity-status">Waiting for text...</div>
     </div>
   `);
+}
+
+function isSubmitElement(el) {
+  if (!el) return false;
+
+  const text = (el.innerText || el.textContent || "").trim().toLowerCase();
+  const role = el.getAttribute("role");
+  const ariaDisabled = el.getAttribute("aria-disabled");
+
+  // Comments use "Post"
+  if (text === "post" && role === "button" && ariaDisabled !== "true") {
+    return true;
+  }
+
+  // Posts use "Share"
+  if (text === "share" && role === "button") {
+    return true;
+  }
+
+  return false;
+}
+
+function isDiscardElement(el) {
+  if (!el) return false;
+  const text = (el.innerText || el.textContent || "").trim().toLowerCase();
+  return text === "discard";
+}
+
+function setupClickListener() {
+  document.addEventListener("click", async (e) => {
+    const el = e.target.closest("div, button");
+    if (!el) return;
+
+    if (isDiscardElement(el)) {
+      lastAnalyzedText = "";
+      lastPreviewResult = null;
+      console.log("Clarity AI: draft discarded, nothing counted");
+      return;
+    }
+
+    if (isSubmitElement(el)) {
+      if (!lastAnalyzedText) return;
+
+      try {
+        console.log("Clarity AI: committing submitted content");
+        const committed = await commitText(lastAnalyzedText);
+        lastPreviewResult = committed;
+        renderResult(committed, "commit");
+        lastAnalyzedText = "";
+      } catch (error) {
+        console.error("Clarity commit error:", error);
+        updatePanel(`
+          <div class="clarity-error">
+            <strong>Could not commit post/comment.</strong><br>
+            ${error.message}
+          </div>
+        `);
+      }
+    }
+  });
 }
 
 function attachListener() {
   const composer = findComposer();
   if (!composer) return false;
 
-  if (composer.dataset.clarityAttached === "true") return true;
+  if (composer.dataset.clarityAttached !== "true") {
+    composer.dataset.clarityAttached = "true";
 
-  composer.dataset.clarityAttached = "true";
+    composer.addEventListener("input", () => {
+      const text = getComposerText(composer).trim();
 
-  composer.addEventListener("input", () => {
-    const text = getComposerText(composer).trim();
+      clearTimeout(debounceTimer);
 
-    clearTimeout(debounceTimer);
+      if (!text) {
+        lastAnalyzedText = "";
+        lastPreviewResult = null;
+        showInitialUser();
+        return;
+      }
 
-    if (!text) {
-      showInitialUser();
-      return;
-    }
-
-    debounceTimer = setTimeout(async () => {
-      updatePanel(`<div class="clarity-top-card"><div class="clarity-status">Analyzing...</div></div>`);
-      try {
-        const result = await analyzeText(text);
-        renderResult(result);
-      } catch (error) {
-        console.error("Clarity extension fetch error:", error);
+      debounceTimer = setTimeout(async () => {
         updatePanel(`
-          <div class="clarity-error">
-            <strong>Could not analyze post.</strong><br>
-            ${error.message}
+          <div class="clarity-top-card">
+            <div class="clarity-status">Analyzing preview...</div>
           </div>
         `);
-      }
-    }, 1000);
-  });
+
+        try {
+          const result = await previewText(text);
+          lastAnalyzedText = text;
+          lastPreviewResult = result;
+          renderResult(result, "preview");
+        } catch (error) {
+          console.error("Clarity extension preview error:", error);
+          updatePanel(`
+            <div class="clarity-error">
+              <strong>Could not analyze post.</strong><br>
+              ${error.message}
+            </div>
+          `);
+        }
+      }, 1000);
+    });
+  }
 
   createPanel();
   showInitialUser();
@@ -362,6 +428,7 @@ function attachListener() {
 
 function boot() {
   attachListener();
+  setupClickListener();
 
   const observer = new MutationObserver(() => {
     attachListener();
